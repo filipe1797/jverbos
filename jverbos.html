@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Traducción</title>
+    <style>
+        @font-face {
+            font-family: 'Amasis MT Pro';
+            src: url('AMASISMTPRO-REGULAR.woff2') format('woff2'),
+                 url('AMASISMTPRO-REGULAR.woff') format('woff');
+        }
+        body {
+            font-family: 'Amasis MT Pro', sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #0277bd, #81d4fa);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px #01579b;
+        }
+        #game-container {
+            background-color: #f0f4c3;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            margin: 30px auto;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        #word {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #01579b;
+        }
+        input[type="text"] {
+            width: calc(100% - 40px);
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #0288d1;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            background-color: #e1f5fe;
+            color: #01579b;
+        }
+        button {
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        button:hover {
+            background-color: #01579b;
+            transform: scale(1.05);
+        }
+        #feedback {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        #history {
+            margin-top: 40px;
+            text-align: left;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #01579b;
+            border-radius: 15px;
+            color: #e1f5fe;
+        }
+        #history h2 {
+            color: #81d4fa;
+            text-align: center;
+        }
+        #history ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #history li {
+            padding: 10px 0;
+            border-bottom: 1px solid #0288d1;
+        }
+        #score {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            color: red; /* Ya configurado en rojo */
+        }
+        #remaining {
+            font-size: 1.5rem;
+            margin: 10px 0;
+            color: black; /* Texto configurado en negro */
+        }
+    </style>
+</head>
+<body>
+    <h1>Juego de Traducción</h1>
+    <div id="game-container">
+        <p id="score">Porcentaje de aciertos: 0%</p>
+        <p id="remaining">Palabras restantes: 0</p>
+        <p id="word">Palabra en español: <span>----</span></p>
+        <input type="text" id="answer" placeholder="Escribe en francés">
+        <button onclick="checkAnswer()">Confirmar</button>
+        <p id="feedback"></p>
+    </div>
+    <div id="history">
+        <h2>Historial de palabras falladas</h2>
+        <ul id="wordHistory"></ul>
+    </div>
+    <script>
+        const words = [
+{ es: "ser", fr: "être" },
+    { es: "tener", fr: "avoir" },
+    { es: "hacer", fr: "faire" },
+    { es: "decir", fr: "dire" },
+    { es: "ir", fr: "aller" },
+    { es: "ver", fr: "voir" },
+    { es: "poder", fr: "pouvoir" },
+    { es: "querer", fr: "vouloir" },
+    { es: "saber", fr: "savoir" },
+    { es: "comer", fr: "manger" },
+    { es: "beber", fr: "boire" },
+    { es: "hablar", fr: "parler" },
+    { es: "vivir", fr: "vivre" },
+    { es: "amar", fr: "aimer" },
+    { es: "leer", fr: "lire" },
+    { es: "escribir", fr: "écrire" },
+    { es: "caminar", fr: "marcher" },
+    { es: "correr", fr: "courir" },
+    { es: "dormir", fr: "dormir" },
+    { es: "trabajar", fr: "travailler" },
+    { es: "jugar", fr: "jouer" },
+    { es: "esperar", fr: "attendre" },
+    { es: "abrir", fr: "ouvrir" },
+    { es: "cerrar", fr: "fermer" },
+    { es: "pensar", fr: "penser" },
+    { es: "creer", fr: "croire" },
+    { es: "sentir", fr: "sentir" },
+    { es: "encontrar", fr: "trouver" },
+    { es: "buscar", fr: "chercher" },
+    { es: "llegar", fr: "arriver" },
+    { es: "partir", fr: "partir" },
+    { es: "conocer", fr: "connaître" },
+    { es: "entender", fr: "comprendre" },
+    { es: "enseñar", fr: "enseigner" },
+    { es: "ayudar", fr: "aider" },
+    { es: "mirar", fr: "regarder" },
+    { es: "oír", fr: "entendre" },
+    { es: "recordar", fr: "se souvenir" },
+    { es: "olvidar", fr: "oublier" },
+    { es: "necesitar", fr: "avoir besoin" },
+    { es: "viajar", fr: "voyager" },
+    { es: "descansar", fr: "se reposer" },
+    { es: "reír", fr: "rire" },
+    { es: "llorar", fr: "pleurer" },
+    { es: "jugar", fr: "jouer" },
+    { es: "estudiar", fr: "étudier" },
+    { es: "comprar", fr: "acheter" },
+    { es: "vender", fr: "vendre" },
+    { es: "perder", fr: "perdre" },
+    { es: "ganar", fr: "gagner" },
+    { es: "encender", fr: "allumer" },
+    { es: "apagar", fr: "éteindre" },
+{ "es": "saltar", "fr": "sauter" },
+  { "es": "nadar", "fr": "nager" },
+  { "es": "volar", "fr": "voler" },
+{ "es": "aconsejar", "fr": "conseiller" },
+  { "es": "analizar", "fr": "analyser" },
+  { "es": "apreciar", "fr": "apprécier" },
+  { "es": "argumentar", "fr": "argumenter" },
+  { "es": "asumir", "fr": "assumer" },
+  { "es": "convencer", "fr": "convaincre" },
+  { "es": "debatir", "fr": "débattre" },
+  { "es": "desarrollar", "fr": "développer" },
+  { "es": "evaluar", "fr": "évaluer" },
+  { "es": "facilitar", "fr": "faciliter" },
+  { "es": "garantizar", "fr": "garantir" },
+  { "es": "implementar", "fr": "implémenter" },
+  { "es": "innovar", "fr": "innover" },
+  { "es": "justificar", "fr": "justifier" },
+  { "es": "negociar", "fr": "négocier" },
+  { "es": "optimizar", "fr": "optimiser" },
+  { "es": "persuadir", "fr": "persuader" },
+  { "es": "proponer", "fr": "proposer" },
+  { "es": "supervisar", "fr": "superviser" },
+  { "es": "sustentar", "fr": "soutenir" },
+{ "es": "ahorrar", "fr": "économiser" },
+  { "es": "arreglar", "fr": "réparer" },
+  { "es": "ayudar", "fr": "aider" },
+  { "es": "celebrar", "fr": "célébrer" },
+  { "es": "comparar", "fr": "comparer" },
+  { "es": "confiar", "fr": "faire confiance" },
+  { "es": "decidir", "fr": "décider" },
+  { "es": "descubrir", "fr": "découvrir" },
+  { "es": "desear", "fr": "souhaiter" },
+  { "es": "discutir", "fr": "discuter" },
+  { "es": "distinguir", "fr": "distinguer" },
+  { "es": "encontrar", "fr": "rencontrer" },
+  { "es": "esperar", "fr": "espérer" },
+  { "es": "explicar", "fr": "expliquer" },
+  { "es": "imaginar", "fr": "imaginer" },
+  { "es": "improvisar", "fr": "improviser" },
+  { "es": "insistir", "fr": "insister" },
+  { "es": "investigar", "fr": "enquêter" },
+  { "es": "organizar", "fr": "organiser" },
+  { "es": "adaptar", "fr": "adapter" },
+  { "es": "anticipar", "fr": "anticiper" },
+  { "es": "colaborar", "fr": "collaborer" },
+  { "es": "coordinar", "fr": "coordonner" },
+  { "es": "desarrollar", "fr": "développer" },
+  { "es": "especializarse", "fr": "se spécialiser" },
+  { "es": "facilitar", "fr": "faciliter" },
+  { "es": "gestionar", "fr": "gérer" },
+  { "es": "inspirar", "fr": "inspirer" },
+  { "es": "motivar", "fr": "motiver" },
+  { "es": "negociar", "fr": "négocier" },
+  { "es": "optimizar", "fr": "optimiser" },
+  { "es": "planificar", "fr": "planifier" },
+  { "es": "priorizar", "fr": "prioriser" },
+  { "es": "resolver", "fr": "résoudre" },
+{ es: "reunir", fr: "rejoindre" },
+{ es: "impregnar", fr: "imprégner" },
+{ es: "crear", fr: "créer" },
+{ es: "llamar", fr: "appeler" },
+{ es: "observar", fr: "observer" },
+{ es: "impedir", fr: "empêcher" },
+{ es: "caer", fr: "chuter" },
+{ es: "subir", fr: "monter" },
+{ es: "darse cuenta", fr: "se rendre compte" },
+{ es: "repetir", fr: "répéter" },
+{ es: "acercar", fr: "approcher" },
+{ es: "parecer", fr: "sembler" },
+{ es: "afirmar", fr: "affirmer" },
+{ es: "confesar", fr: "confesser" },
+{ es: "herir", fr: "blesser" },
+{ es: "surgir", fr: "surgir" },
+{ es: "contar", fr: "raconter" },
+{ es: "deber", fr: "devoir" },
+{ es: "golpear", fr: "frapper" },
+{ es: "indicar", fr: "indiquer" },
+{ es: "anunciar", fr: "annoncer" },
+{ es: "añadir", fr: "ajouter" },
+{ es: "dar", fr: "donner" },
+{ es: "evocar", fr: "évoquer" },
+{ es: "intervenir", fr: "intervenir" },
+{ es: "expresar", fr: "exprimer" },
+{ es: "declarar", fr: "déclarer" },
+{ es: "precisar", fr: "préciser" },
+{ es: "disparar", fr: "tirer" },
+{ es: "parar", fr: "arrêter" },
+{ es: "continuar", fr: "continuer" },
+{ es: "acusar", fr: "accuser" },
+{ es: "ignorar", fr: "ignorer" },
+{ es: "denunciar", fr: "dénoncer" },
+{ es: "elegir", fr: "choisir" },
+{ es: "perseguir", fr: "poursuivre" },
+{ es: "rechazar", fr: "rejeter" },
+{ es: "advertir", fr: "avertir" },
+{ es: "lanzar", fr: "lancer" },
+{ es: "reivindicar", fr: "revendiquer" },
+{ es: "constituir", fr: "constituer" },
+{ es: "deber", fr: "devoir" },
+{ es: "participe passé de ser", fr: "été" },
+{ es: "participe passé de tener", fr: "eu" },
+{ es: "participe passé de hacer", fr: "fait" },
+{ es: "participe passé de decir", fr: "dit" },
+{ es: "participe passé de ir", fr: "allé" },
+{ es: "participe passé de ver", fr: "vu" },
+{ es: "participe passé de poder", fr: "pu" },
+{ es: "participe passé de querer", fr: "voulu" },
+{ es: "participe passé de saber", fr: "su" },
+{ es: "participe passé de comer", fr: "mangé" },
+{ es: "participe passé de beber", fr: "bu" },
+{ es: "participe passé de hablar", fr: "parlé" },
+{ es: "participe passé de vivir", fr: "vécu" },
+{ es: "participe passé de amar", fr: "aimé" },
+{ es: "participe passé de leer", fr: "lu" },
+{ es: "participe passé de escribir", fr: "écrit" },
+{ es: "participe passé de caminar", fr: "marché" },
+{ es: "participe passé de correr", fr: "couru" },
+{ es: "participe passé de dormir", fr: "dormi" },
+{ es: "participe passé de trabajar", fr: "travaillé" },
+{ es: "participe passé de jugar", fr: "joué" },
+{ es: "participe passé de esperar", fr: "attendu" },
+{ es: "participe passé de abrir", fr: "ouvert" },
+{ es: "participe passé de cerrar", fr: "fermé" },
+{ es: "participe passé de pensar", fr: "pensé" },
+{ es: "participe passé de creer", fr: "cru" },
+{ es: "participe passé de sentir", fr: "senti" },
+{ es: "participe passé de encontrar", fr: "trouvé" },
+{ es: "participe passé de buscar", fr: "cherché" },
+{ es: "participe passé de llegar", fr: "arrivé" },
+{ es: "participe passé de partir", fr: "parti" },
+{ es: "participe passé de conocer", fr: "connu" },
+{ es: "participe passé de entender", fr: "compris" },
+{ es: "participe passé de enseñar", fr: "enseigné" },
+{ es: "participe passé de ayudar", fr: "aidé" },
+{ es: "participe passé de mirar", fr: "regardé" },
+{ es: "participe passé de oír", fr: "entendu" },
+{ es: "participe passé de recordar", fr: "souvenu" },
+{ es: "participe passé de olvidar", fr: "oublié" },
+{ es: "participe passé de necesitar", fr: "eu besoin" },
+{ es: "participe passé de viajar", fr: "voyagé" },
+{ es: "participe passé de descansar", fr: "reposé" },
+{ es: "participe passé de reír", fr: "ri" },
+{ es: "participe passé de llorar", fr: "pleuré" },
+{ es: "participe passé de estudiar", fr: "étudié" },
+{ es: "participe passé de comprar", fr: "acheté" },
+{ es: "participe passé de vender", fr: "vendu" },
+{ es: "participe passé de perder", fr: "perdu" },
+{ es: "participe passé de ganar", fr: "gagné" },
+{ es: "participe passé de encender", fr: "allumé" },
+{ es: "participe passé de apagar", fr: "éteint" },
+{ es: "participe passé de saltar", fr: "sauté" },
+{ es: "participe passé de nadar", fr: "nagé" },
+{ es: "participe passé de volar", fr: "volé" },
+{ es: "participe passé de aconsejar", fr: "conseillé" },
+{ es: "participe passé de analizar", fr: "analysé" },
+{ es: "participe passé de apreciar", fr: "apprécié" },
+{ es: "participe passé de argumentar", fr: "argumenté" },
+{ es: "participe passé de asumir", fr: "assumé" },
+{ es: "participe passé de convencer", fr: "convaincu" },
+{ es: "participe passé de debatir", fr: "débattu" },
+{ es: "participe passé de desarrollar", fr: "développé" },
+{ es: "participe passé de evaluar", fr: "évalué" },
+{ es: "participe passé de facilitar", fr: "facilité" },
+{ es: "participe passé de garantizar", fr: "garanti" },
+{ es: "participe passé de implementar", fr: "implémenté" },
+{ es: "participe passé de innovar", fr: "innové" },
+{ es: "participe passé de justificar", fr: "justifié" },
+{ es: "participe passé de negociar", fr: "négocié" },
+{ es: "participe passé de optimizar", fr: "optimisé" },
+{ es: "participe passé de persuadir", fr: "persuadé" },
+{ es: "participe passé de proponer", fr: "proposé" },
+{ es: "participe passé de supervisar", fr: "supervisé" },
+{ es: "participe passé de sustentar", fr: "soutenu" },
+{ es: "participe passé de ahorrar", fr: "économisé" },
+{ es: "participe passé de arreglar", fr: "réparé" },
+{ es: "participe passé de celebrar", fr: "célébré" },
+{ es: "participe passé de comparar", fr: "comparé" },
+{ es: "participe passé de confiar", fr: "fait confiance" },
+{ es: "participe passé de decidir", fr: "décidé" },
+{ es: "participe passé de descubrir", fr: "découvert" },
+{ es: "participe passé de desear", fr: "souhaité" },
+{ es: "participe passé de discutir", fr: "discuté" },
+{ es: "participe passé de distinguir", fr: "distingué" },
+{ es: "participe passé de encontrar", fr: "rencontré" },
+{ es: "participe passé de esperar", fr: "espéré" },
+{ es: "participe passé de explicar", fr: "expliqué" },
+{ es: "participe passé de imaginar", fr: "imaginé" },
+{ es: "participe passé de improvisar", fr: "improvisé" },
+{ es: "participe passé de insistir", fr: "insisté" },
+{ es: "participe passé de investigar", fr: "enquêté" },
+{ es: "participe passé de organizar", fr: "organisé" },
+
+           
+        ];
+
+        let usedWords = [];
+        let incorrectWords = [];
+        let currentIndex = 0;
+        let totalAnswers = 0;
+        let correctAnswers = 0;
+
+        function updateScore() {
+            const scoreElement = document.getElementById("score");
+            const percentage = totalAnswers === 0 ? 0 : Math.round((correctAnswers / totalAnswers) * 100);
+            scoreElement.textContent = `Porcentaje de aciertos: ${percentage}%`;
+        }
+
+        function updateRemaining() {
+            const remainingElement = document.getElementById("remaining");
+            const remainingCount = words.length - usedWords.length;
+            remainingElement.textContent = `Palabras restantes: ${remainingCount}`;
+        }
+
+        function loadNextWord() {
+            const availableWords = words.filter(word => !usedWords.includes(word));
+            if (availableWords.length === 0) {
+                alert("¡Has terminado el juego! Reiniciando...");
+                usedWords = [];
+                incorrectWords = [];
+                return loadNextWord();
+            }
+            const randomIndex = Math.floor(Math.random() * availableWords.length);
+            const selectedWord = availableWords[randomIndex];
+            currentIndex = words.indexOf(selectedWord);
+            document.querySelector("#word span").textContent = selectedWord.es;
+            updateRemaining();
+        }
+
+        function checkAnswer() {
+            const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+            const correctAnswer = words[currentIndex].fr;
+            const isCorrect = userAnswer === correctAnswer;
+            totalAnswers++;
+
+            if (isCorrect) {
+                correctAnswers++;
+                usedWords.push(words[currentIndex]);
+            } else {
+                incorrectWords.push(words[currentIndex]);
+                const wordHistory = document.getElementById("wordHistory");
+                const listItem = document.createElement("li");
+                listItem.textContent = `${words[currentIndex].es} = ${correctAnswer}`;
+                wordHistory.prepend(listItem);
+            }
+
+            document.getElementById("answer").value = "";
+            updateScore();
+            loadNextWord();
+        }
+
+        loadNextWord();
+        updateScore();
+        updateRemaining();
+    </script>
+</body>
+</html>
